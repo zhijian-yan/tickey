@@ -60,7 +60,7 @@ typedef enum {
 /**
  * @brief The type of the key object handle
  */
-typedef struct tkey_t *tkey_handle_t;
+typedef struct tkey *tkey_handle_t;
 
 /**
  * @brief Callback function for handling key events

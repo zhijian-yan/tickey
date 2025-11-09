@@ -8,7 +8,7 @@
 #define TKEY_STATE_UNPRESSED 0
 #define TKEY_STATE_PRESSED 1
 
-struct tkey_t {
+struct tkey {
     tkey_event_cb_t event_cb;
     tkey_detect_cb_t detect_cb;
     void *user_data;
@@ -29,7 +29,7 @@ struct tkey_t {
 tkey_handle_t tkey_create(tkey_config_t *config) {
     if (!config)
         return NULL;
-    tkey_handle_t tkey = (tkey_handle_t)tkey_malloc(sizeof(struct tkey_t));
+    tkey_handle_t tkey = (tkey_handle_t)tkey_malloc(sizeof(struct tkey));
     if (!tkey)
         return NULL;
     tkey->event_cb = config->event_cb;
