@@ -51,13 +51,15 @@ tkey_handle_t tkey_create(tkey_config_t *config) {
 }
 
 void tkey_delete(tkey_handle_t *pkey) {
-    if (!pkey || !*pkey)
+    tkey_handle_t key = *pkey;
+    if (!pkey || !key)
         return;
-    if (!(*pkey)->flag_in_handler) {
-        tkey_free(*pkey);
+    if (!key->flag_in_handler) {
         *pkey = NULL;
+        tkey_free(key);
+        return;
     } else
-        (*pkey)->flag_delete_in_handler = 1;
+        key->flag_delete_in_handler = 1;
 }
 
 tkey_handle_t tkey_create_default(tkey_event_cb_t event_cb,
@@ -134,9 +136,12 @@ void tkey_handler(tkey_handle_t *pkey) {
             key->event_cb(key, event, key->multi_press_count, key->user_data);
         }
     }
+    if (key->flag_delete_in_handler) {
+        *pkey = NULL;
+        tkey_free(key);
+        return;
+    }
     key->flag_in_handler = 0;
-    if (key->flag_delete_in_handler)
-        tkey_delete(pkey);
 }
 
 void tkey_multi_handler(tkey_handle_t key[], uint32_t num) {
