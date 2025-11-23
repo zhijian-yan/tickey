@@ -9,7 +9,7 @@
 
 # 移植
 - **tickey**的代码为C语言设计，支持C++环境，移植无需其他步骤，直接将源代码添加到项目中即可
-- 对象的创建默认使用C语言标准库的`malloc`函数，如有特殊的内存分配需求，可以将头文件中`tkey_malloc`和`tkey_free`宏替换为项目中所使用的内存分配函数
+- 按键实例的创建默认使用C语言标准库的`malloc`函数，如有特殊的内存分配需求，可以将头文件中`tkey_malloc`和`tkey_free`宏替换为项目中所使用的内存分配函数
 
 # 注意事项
 - 不能在中断中调用`tkey_delete`函数，会有`Use-After-Free`风险
@@ -17,21 +17,21 @@
 - 可以在event中调用`tkey_delete`函数，它会延迟删除
 
 # 使用
-## 第一步 创建按键对象
-创建一个按键对象并初始化对象，可以选择创建默认按键对象或者自定义按键对象
-### 创建默认按键对象
-调用`tkey_create_default`函数创建默认按键对象
+## 第一步 创建按键实例
+创建一个按键实例并初始化，可以选择创建默认按键实例或者自定义按键实例
+### 创建默认按键实例
+调用`tkey_create_default`函数创建默认按键实例
 ```c
 tkey_handle_t key = tkey_create_default(tkey_event_cb, tkey_detect_cb, user_data);
 ```
-默认按键对象的属性如下:
+默认按键实例的属性如下:
 - 按键扫描处理函数的工作频率:`50Hz`
 - 去抖时间:`1 tick` (20ms@50Hz)
 - 长按时间:`25 tick` (500ms@50Hz)
 - 连续按下时间间隔:`15 tick` (300ms@50Hz)
 - 按键按下时电平:`0` (低电平)
-### 创建自定义按键对象
-调用`tkey_create`函数创建自定义按键对象，使用`tkey_config_t`结构体初始化按键对象
+### 创建自定义按键实例
+调用`tkey_create`函数创建自定义按键实例，使用`tkey_config_t`结构体初始化按键实例
 ```c
 tkey_config_t tkey_config = 
 {
@@ -54,12 +54,12 @@ tkey_handle_t key = tkey_create(&tkey_config);
 - `debounce_ticks`:去抖时间
 - `multi_press_interval_ticks`:连续按下间隔时间
 - `pressed_level`:按键按下时电平
-### 创建按键对象句柄数组
-使用`TKEY_HANDLE_ARRAY_DEFINE(name, num)`宏定义零初始化的按键对象句柄的数组，`name`是数组名，`num`是数组中按键对象句柄的个数
+### 创建按键实例句柄数组
+使用`TKEY_HANDLE_ARRAY_DEFINE(name, num)`宏定义零初始化的按键实例句柄的数组，`name`是数组名，`num`是数组中按键实例句柄的个数
 ```c
-TKEY_HANDLE_ARRAY_DEFINE(key, 3); // 定义数组key，包含3个对象句柄
+TKEY_HANDLE_ARRAY_DEFINE(key, 3); // 定义数组key，包含3个按键实例句柄
 ```
-按键对象句柄用来接收`tkey_create_default`函数或者`tkey_create`函数返回的按键对象，数组可以传入`tkey_mutli_handler`处理程序来对多个按键对象进行检测
+按键实例句柄用来接收`tkey_create_default`函数或者`tkey_create`函数返回的按键实例，数组可以传入`tkey_mutli_handler`处理程序来对多个按键实例进行检测
 ## 第二步 编写回调函数
 ### 检测回调函数
 ```c
@@ -69,7 +69,7 @@ int tkey_detect_cb(void *user_data)
     return gpio_read(pin);
 }
 ```
-可以在注册回调函数时通过`user_data`传入需要检测的引脚，这样可以将这个检测回调函数注册在不同的按键对象中
+可以在注册回调函数时通过`user_data`传入需要检测的引脚，这样可以将这个检测回调函数注册在不同的按键实例中
 ### 事件回调函数
 所有的按键事件如下:
 - `TKEY_EVENT_PRESS`:按键按下时的事件
@@ -90,7 +90,7 @@ int tkey_detect_cb(void *user_data)
 void tkey_event_cb(tkey_handle_t key, tkey_event_t event, uint8_t multi_press_count, void *user_data);
 ```
 事件回调函数的参数如下:
-- `key`:按键对象
+- `key`:按键实例句柄
 - `event`:事件
 - `multi_press_count`:多次按下的次数
 - `user_data`:用户数据
@@ -107,7 +107,7 @@ void tkey_event_cb(tkey_handle_t key, tkey_event_t event, uint8_t multi_press_co
 默认的按下事件包括按下事件和多次按下事件，不包括长按事件，如果包括长按会导致在长按时先触发按下事件再触发长按事件，从而导致一次长按却触发两次回调函数
 
 默认释放事件包括释放事件、长按后释放事件、多次按下后释放事件，只在按键释放时触发回调函数
-#### 例子2：多个按键对象共用一个事件回调函数
+#### 例子2：多个按键实例共用一个事件回调函数
 ```c
 void tkey_event_cb(tkey_handle_t key, tkey_event_t event, uint8_t multi_press_count, void *user_data)
 {
@@ -218,7 +218,7 @@ void tkey_event_cb(tkey_handle_t key, tkey_event_t event, uint8_t multi_press_co
 }
 ```
 ## 第三步 周期性调用处理程序
-初始化完成后需要周期性地调用`tkey_handler`函数处理按键的扫描事件，`tkey_handler`函数只能处理一个按键对象
+初始化完成后需要周期性地调用`tkey_handler`函数处理按键的扫描事件，`tkey_handler`函数只能处理一个按键实例
 ```c
 void hardtimer_callback(void) // 在定时器中断中周期性调用，定时周期20ms@50Hz
 {
@@ -233,7 +233,7 @@ while(1)
     delay_ms(20);
 }
 ```
-`tkey_mutli_handler`函数可以处理多个`相同配置`的按键对象，多个按键对象通过按键对象句柄的数组传入`tkey_mutli_handler`函数
+`tkey_mutli_handler`函数可以处理多个`相同配置`的按键实例，多个按键实例通过按键实例句柄的数组传入`tkey_mutli_handler`函数
 ```c
 TKEY_HANDLE_ARRAY_DEFINE(key_array, 3);
 key_array[0] = tkey_create_default(config); // 相同配置
