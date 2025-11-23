@@ -11,8 +11,13 @@
 - **tickey**的代码为C语言设计，支持C++环境，移植无需其他步骤，直接将源代码添加到项目中即可
 - 对象的创建默认使用C语言标准库的`malloc`函数，如有特殊的内存分配需求，可以将头文件中`tkey_malloc`和`tkey_free`宏替换为项目中所使用的内存分配函数
 
+# 注意事项
+- 不能在中断中调用`tkey_delete`函数，会有`Use-After-Free`风险
+- `tkey_delete`仅释放内存，不会设置指针为NULL，请手动设置
+- 可以在event中调用`tkey_delete`函数，它会延迟删除
+
 # 使用
-## 1 创建按键对象
+## 第一步 创建按键对象
 创建一个按键对象并初始化对象，可以选择创建默认按键对象或者自定义按键对象
 ### 创建默认按键对象
 调用`tkey_create_default`函数创建默认按键对象
@@ -55,7 +60,7 @@ tkey_handle_t key = tkey_create(&tkey_config);
 TKEY_HANDLE_ARRAY_DEFINE(key, 3); // 定义数组key，包含3个对象句柄
 ```
 按键对象句柄用来接收`tkey_create_default`函数或者`tkey_create`函数返回的按键对象，数组可以传入`tkey_mutli_handler`处理程序来对多个按键对象进行检测
-## 2 编写回调函数
+## 第二步 编写回调函数
 ### 检测回调函数
 ```c
 int tkey_detect_cb(void *user_data)
@@ -212,10 +217,10 @@ void tkey_event_cb(tkey_handle_t key, tkey_event_t event, uint8_t multi_press_co
     }
 }
 ```
-## 3 周期性调用处理程序
+## 第三步 周期性调用处理程序
 初始化完成后需要周期性地调用`tkey_handler`函数处理按键的扫描事件，`tkey_handler`函数只能处理一个按键对象
 ```c
-void timer_interrupt(void) // 在定时器中断中周期性调用，定时周期20ms@50Hz
+void hardtimer_callback(void) // 在定时器中断中周期性调用，定时周期20ms@50Hz
 {
     tkey_handler(&key);
 }
@@ -261,3 +266,4 @@ void timer_interrupt2(void)
     tkey_handler(&key_array[2]);
 }
 ```
+## 第四步 开始享受tickey吧！
