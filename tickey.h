@@ -105,9 +105,9 @@ tkey_handle_t tkey_create(tkey_config_t *config);
 /**
  * @brief Delete a key instance and release its resources
  *
- * @param pkey Pointer to the key handle to be deleted
+ * @param key Handle of the target key
  */
-void tkey_delete(tkey_handle_t *pkey);
+void tkey_delete(tkey_handle_t key);
 
 /**
  * @brief Process key state for a single key

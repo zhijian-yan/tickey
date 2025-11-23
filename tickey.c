@@ -50,12 +50,10 @@ tkey_handle_t tkey_create(tkey_config_t *config) {
     return tkey;
 }
 
-void tkey_delete(tkey_handle_t *pkey) {
-    tkey_handle_t key = *pkey;
-    if (!pkey || !key)
+void tkey_delete(tkey_handle_t key) {
+    if (!key)
         return;
     if (!key->flag_in_handler) {
-        *pkey = NULL;
         tkey_free(key);
         return;
     } else
