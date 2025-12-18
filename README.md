@@ -29,7 +29,6 @@ tkey_handle_t key = tkey_create_default(tkey_event_cb, tkey_detect_cb, user_data
 - 去抖时间:`1 tick` (20ms@50Hz)
 - 长按时间:`25 tick` (500ms@50Hz)
 - 连续按下时间间隔:`15 tick` (300ms@50Hz)
-- 按键按下时电平:`0` (低电平)
 ### 创建自定义按键实例
 调用`tkey_create`函数创建自定义按键实例，使用`tkey_config_t`结构体初始化按键实例
 ```c
@@ -41,7 +40,6 @@ tkey_config_t tkey_config =
     hold_ticks = 25,
     debounce_ticks = 1,
     multi_press_interval_ticks = 15,
-    pressed_level = 0,
 };
 
 tkey_handle_t key = tkey_create(&tkey_config);
@@ -53,7 +51,6 @@ tkey_handle_t key = tkey_create(&tkey_config);
 - `hold_ticks`:长按持续时间
 - `debounce_ticks`:去抖时间
 - `multi_press_interval_ticks`:连续按下间隔时间
-- `pressed_level`:按键按下时电平
 ### 创建按键实例句柄数组
 使用`TKEY_HANDLE_ARRAY_DEFINE(name, num)`宏定义零初始化的按键实例句柄的数组，`name`是数组名，`num`是数组中按键实例句柄的个数
 ```c
@@ -66,7 +63,10 @@ TKEY_HANDLE_ARRAY_DEFINE(key, 3); // 定义数组key，包含3个按键实例句
 int tkey_detect_cb(void *user_data)
 {
     int pin = (int)user_data;
-    return gpio_read(pin);
+    if(gpio_read(pin) == 0) // 0:按下时电平为低电平 1:按下时电平为高电平
+        return 1; // 检测到按下返回1
+    else
+        return 0; // 检测到释放返回0
 }
 ```
 可以在注册回调函数时通过`user_data`传入需要检测的引脚，这样可以将这个检测回调函数注册在不同的按键实例中

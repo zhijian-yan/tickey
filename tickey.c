@@ -2,13 +2,12 @@
 // Copyright (c) 2025 Zhijian Yan
 
 #include "tickey.h"
+#include <string.h>
 
-#define TKEY_MAX_TICKS (0xFFFF)
-#define TKEY_MAX_COUNT (0xFF)
 #define TKEY_STATE_UNPRESSED 0
 #define TKEY_STATE_PRESSED 1
 
-struct tkey {
+static struct tkey {
     tkey_event_cb_t event_cb;
     tkey_detect_cb_t detect_cb;
     void *user_data;
@@ -19,7 +18,6 @@ struct tkey {
     uint16_t multi_press_ticks;
     uint8_t multi_press_count;
     uint8_t press_state : 1;
-    uint8_t pressed_level : 1;
     uint8_t flag_long_pressed : 1;
     uint8_t flag_in_handler : 1;
     uint8_t flag_delete_in_handler : 1;
@@ -29,25 +27,25 @@ struct tkey {
 tkey_handle_t tkey_create(tkey_config_t *config) {
     if (!config)
         return NULL;
-    tkey_handle_t tkey = (tkey_handle_t)tkey_malloc(sizeof(struct tkey));
-    if (!tkey)
+    tkey_handle_t key = (tkey_handle_t)tkey_malloc(sizeof(struct tkey));
+    if (!key)
         return NULL;
-    tkey->event_cb = config->event_cb;
-    tkey->detect_cb = config->detect_cb;
-    tkey->user_data = config->user_data;
-    tkey->hold_ticks = config->hold_ticks;
-    tkey->debounce_ticks = config->debounce_ticks;
-    tkey->multi_press_interval_ticks = config->multi_press_interval_ticks;
-    tkey->pressed_level = config->pressed_level;
-    tkey->pressed_ticks = 0;
-    tkey->multi_press_ticks = 0;
-    tkey->multi_press_count = 0;
-    tkey->press_state = TKEY_STATE_UNPRESSED;
-    tkey->flag_long_pressed = 0;
-    tkey->flag_in_handler = 0;
-    tkey->flag_delete_in_handler = 0;
-    tkey->enabled = 1;
-    return tkey;
+    memset(key, 0, sizeof(struct tkey));
+    key->event_cb = config->event_cb;
+    key->detect_cb = config->detect_cb;
+    key->user_data = config->user_data;
+    key->hold_ticks = config->hold_ticks;
+    key->debounce_ticks = config->debounce_ticks;
+    key->multi_press_interval_ticks = config->multi_press_interval_ticks;
+    key->pressed_ticks = 0;
+    key->multi_press_ticks = 0;
+    key->multi_press_count = 0;
+    key->press_state = TKEY_STATE_UNPRESSED;
+    key->flag_long_pressed = 0;
+    key->flag_in_handler = 0;
+    key->flag_delete_in_handler = 0;
+    key->enabled = 1;
+    return key;
 }
 
 void tkey_delete(tkey_handle_t key) {
@@ -68,7 +66,6 @@ tkey_handle_t tkey_create_default(tkey_event_cb_t event_cb,
     config.event_cb = event_cb;
     config.hold_ticks = 25;
     config.multi_press_interval_ticks = 15;
-    config.pressed_level = 0;
     config.user_data = user_data;
     return tkey_create(&config);
 }
@@ -79,8 +76,6 @@ void tkey_handler(tkey_handle_t *pkey) {
     if (!pkey || !key)
         return;
     if (!key->enabled || !key->detect_cb || !key->event_cb)
-        return;
-    if (key->flag_in_handler)
         return;
     key->flag_in_handler = 1;
     if (key->multi_press_count > 0) {
@@ -97,7 +92,7 @@ void tkey_handler(tkey_handle_t *pkey) {
         }
     }
     if (key->press_state == TKEY_STATE_UNPRESSED) {
-        if (key->detect_cb(key->user_data) == key->pressed_level) {
+        if (key->detect_cb(key->user_data)) {
             if (key->pressed_ticks >= key->debounce_ticks) {
                 key->press_state = TKEY_STATE_PRESSED;
                 key->pressed_ticks = 0;
@@ -117,7 +112,7 @@ void tkey_handler(tkey_handle_t *pkey) {
     } else if (key->press_state == TKEY_STATE_PRESSED) {
         if (key->pressed_ticks < TKEY_MAX_TICKS)
             key->pressed_ticks++;
-        if (key->detect_cb(key->user_data) != key->pressed_level) {
+        if (!key->detect_cb(key->user_data)) {
             key->press_state = TKEY_STATE_UNPRESSED;
             if (key->flag_long_pressed) {
                 key->flag_long_pressed = 0;
@@ -154,12 +149,6 @@ void tkey_register_callback(tkey_handle_t key, tkey_event_cb_t event_cb,
     key->user_data = user_data;
     key->event_cb = event_cb;
     key->detect_cb = detect_cb;
-}
-
-void tkey_set_pressed_level(tkey_handle_t key, uint8_t pressed_level) {
-    if (!key)
-        return;
-    key->pressed_level = pressed_level;
 }
 
 void tkey_set_hold(tkey_handle_t key, uint16_t hold_ticks) {

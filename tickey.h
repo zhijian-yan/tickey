@@ -15,6 +15,8 @@ extern "C" {
 #define tkey_free(ptr) free(ptr)
 #define TKEY_HANDLE_ARRAY_DEFINE(name, num) tkey_handle_t name[num] = {0}
 #define TKEY_HANDLE_ARRAY_GET_NUM(name) (sizeof(name) / sizeof(tkey_handle_t))
+#define TKEY_MAX_TICKS (0xFFFF)
+#define TKEY_MAX_COUNT (0xFF)
 
 /**
  * @brief Enumeration of key events
@@ -77,7 +79,6 @@ typedef struct {
     uint16_t hold_ticks;                 /**< Long press duration in ticks */
     uint16_t debounce_ticks;             /**< Debounce time in ticks */
     uint16_t multi_press_interval_ticks; /**< Multi-press interval in ticks */
-    uint16_t pressed_level;              /**< GPIO level when key is pressed */
 } tkey_config_t;
 
 /**
@@ -138,14 +139,6 @@ void tkey_multi_handler(tkey_handle_t key[], uint32_t num);
  */
 void tkey_register_callback(tkey_handle_t key, tkey_event_cb_t event_cb,
                             tkey_detect_cb_t detect_cb, void *user_data);
-
-/**
- * @brief Set the pressed level for key detection
- *
- * @param key Handle of the target key
- * @param pressed_level GPIO level when key is pressed
- */
-void tkey_set_pressed_level(tkey_handle_t key, uint8_t pressed_level);
 
 /**
  * @brief Set long press duration
