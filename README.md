@@ -200,13 +200,13 @@ tkey_handle_t key1, key2;
 
 void tkey_event_cb(tkey_handle_t key, tkey_event_t event, uint8_t multi_press_count, void *user_data)
 {
-    switch(key)
+    switch((int)key)
     {
-        case key1:
+        case (int)key1:
         if(event & TKEY_EVENT_DEFAULT_PRESS)
             printf("key1 pressed %d times\r\n", multi_press_count);
         break;
-        case key2:
+        case (int)key2:
         if(event & TKEY_EVENT_DEFAULT_PRESS)
             printf("key2 pressed %d times\r\n", multi_press_count);
         break;
@@ -345,6 +345,7 @@ tkey_delete(key);
 
 int tkey_detect_cb(void *user_data)
 {
+    // 替换gpio_read函数为对应平台的驱动
     if(gpio_read((int)user_data) == press_level) // 0:按下时电平为低电平 1:按下时电平为高电平
         return 1; // 检测到按下返回1
     else
@@ -386,13 +387,18 @@ void tkey_event_cb(tkey_handle_t key, tkey_event_t event, uint8_t multi_press_co
 
 void key_init(void)
 {
-    // (添加引脚和定时器的初始化代码)
+    // (添加引脚初始化代码)
     tkey_enable(tkey_create_default(tkey_event_cb, tkey_detect_cb, (void*)key1_pin));
     tkey_enable(tkey_create_default(tkey_event_cb, tkey_detect_cb, (void*)key2_pin));
 }
 
-void timer_callback(void) // 定时器回调
+int main()
 {
-    tkey_handler();
+    key_init();
+    while(1)
+    {
+        tkey_handler();
+        delay_ms(10);
+    }
 }
 ```
