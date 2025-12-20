@@ -13,8 +13,6 @@ extern "C" {
 
 #define tkey_malloc(size) malloc(size)
 #define tkey_free(ptr) free(ptr)
-#define TKEY_HANDLE_ARRAY_DEFINE(name, num) tkey_handle_t name[num] = {0}
-#define TKEY_HANDLE_ARRAY_GET_NUM(name) (sizeof(name) / sizeof(tkey_handle_t))
 #define TKEY_MAX_TICKS (0xFFFF)
 #define TKEY_MAX_COUNT (0xFF)
 
@@ -111,25 +109,30 @@ tkey_handle_t tkey_create(tkey_config_t *config);
 void tkey_delete(tkey_handle_t key);
 
 /**
- * @brief Process key state for a single key
- * @note This function should be called periodically at the configured frequency
+ * @brief Enable key processing
+ * @note This function adds the key to the active key list
  *
- * @param pkey Pointer to the key handle to process
+ * @param key Handle of the target key
  */
-void tkey_handler(tkey_handle_t *pkey);
+void tkey_enable(tkey_handle_t key);
 
 /**
- * @brief Process key states for multiple keys
- * @note All keys should be processed at the same frequency
- *       The function processes array elements from back to front
+ * @brief Disable key processing
+ * @note This function removes the key from the active key list
  *
- * @param key Array of key handles
- * @param num Number of key objects in the array
+ * @param key Handle of the target key
  */
-void tkey_multi_handler(tkey_handle_t key[], uint32_t num);
+void tkey_disable(tkey_handle_t key);
+
+/**
+ * @brief Key event processing handler
+ * @note This function should be called periodically at the configured frequency
+ */
+void tkey_handler(void);
 
 /**
  * @brief Register or update callback functions for a key
+ * @note Callbacks can only be registered when the key is not enabled
  *
  * @param key Handle of the target key
  * @param event_cb New event callback function
@@ -164,14 +167,6 @@ void tkey_set_debounce(tkey_handle_t key, uint16_t debounce_ticks);
  */
 void tkey_set_multi_press_interval(tkey_handle_t key,
                                    uint16_t multi_press_interval_ticks);
-
-/**
- * @brief Enable or disable key processing
- *
- * @param key Handle of the target key
- * @param enabled true to enable, false to disable
- */
-void tkey_set_enabled(tkey_handle_t key, uint8_t enabled);
 
 /**
  * @brief Get the current pressed duration
