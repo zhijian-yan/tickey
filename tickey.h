@@ -83,9 +83,9 @@ typedef struct {
 /**
  * @brief Create a key instance with default configuration
  * @note Default key configration:
- * debounce_ticks:10ms@100Hz
- * hold_ticks:500ms@100Hz
- * multi_press_interval_ticks:300ms@100Hz
+ * debounce_ticks:              10ms@100Hz
+ * hold_ticks:                  500ms@100Hz
+ * multi_press_interval_ticks:  300ms@100Hz
  *
  * @param event_cb Event callback function
  * @param detect_cb Detection callback function
@@ -108,6 +108,7 @@ tkey_handle_t tkey_create(tkey_config_t *config);
 
 /**
  * @brief Delete a key instance and release its resources
+ * @note This operation can only be performed when the key is disabled
  *
  * @param key Handle of the target key
  */
@@ -130,7 +131,7 @@ void tkey_enable(tkey_handle_t key);
 void tkey_disable(tkey_handle_t key);
 
 /**
- * @brief Key event processing handler
+ * @brief Key event handler
  * @note This function should be called periodically at the configured frequency
  */
 void tkey_handler(void);
