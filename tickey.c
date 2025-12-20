@@ -60,8 +60,8 @@ tkey_handle_t tkey_create_default(tkey_event_cb_t event_cb,
     config.debounce_ticks = 1;
     config.detect_cb = detect_cb;
     config.event_cb = event_cb;
-    config.hold_ticks = 25;
-    config.multi_press_interval_ticks = 15;
+    config.hold_ticks = 50;
+    config.multi_press_interval_ticks = 30;
     config.user_data = user_data;
     return tkey_create(&config);
 }
@@ -117,7 +117,7 @@ void tkey_disable(tkey_handle_t key) {
 }
 
 static void tkey_key_handler(tkey_handle_t key) {
-    tkey_event_t event = 0;
+    tkey_event_t event = TKEY_EVENT_NULL;
     if (key->multi_press_count) {
         if (key->multi_press_ticks < TKEY_MAX_TICKS)
             ++key->multi_press_ticks;

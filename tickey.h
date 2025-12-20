@@ -20,6 +20,7 @@ extern "C" {
  * @brief Enumeration of key events
  */
 typedef enum {
+    TKEY_EVENT_NULL = 0x00,         /**< Key null event */
     TKEY_EVENT_PRESS = 0x01,        /**< Key press event */
     TKEY_EVENT_RELEASE = 0x02,      /**< Key release event after single press */
     TKEY_EVENT_LONG_PRESS = 0x04,   /**< Long press event */
@@ -81,6 +82,10 @@ typedef struct {
 
 /**
  * @brief Create a key instance with default configuration
+ * @note Default key configration:
+ * debounce_ticks:10ms@100Hz
+ * hold_ticks:500ms@100Hz
+ * multi_press_interval_ticks:300ms@100Hz
  *
  * @param event_cb Event callback function
  * @param detect_cb Detection callback function
