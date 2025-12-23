@@ -27,9 +27,10 @@ static struct tkey {
 volatile static uint32_t flag_critical;
 
 tkey_handle_t tkey_create(tkey_config_t *config) {
+    tkey_handle_t key;
     if (!config)
         return NULL;
-    tkey_handle_t key = (tkey_handle_t)tkey_malloc(sizeof(struct tkey));
+    key = (tkey_handle_t)tkey_malloc(sizeof(struct tkey));
     if (!key)
         return NULL;
     memset(key, 0, sizeof(struct tkey));
