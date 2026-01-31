@@ -13,6 +13,9 @@ extern "C" {
 
 #define tkey_malloc(size) malloc(size)
 #define tkey_free(ptr) free(ptr)
+#define TKEY_DEFAULT_DEBOUNCE (1)
+#define TKEY_DEFAULT_HOLD (50)
+#define TKEY_DEFAULT_MULTI_PRESS_INTERVAL (30)
 #define TKEY_MAX_TICKS (0xFFFF)
 #define TKEY_MAX_COUNT (0xFF)
 

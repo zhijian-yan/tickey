@@ -97,7 +97,7 @@ tkey_handle_t key = tkey_create_default(tkey_event_cb, tkey_detect_cb, user_data
 ```
 默认按键实例的属性如下:
 - **按键扫描处理函数的工作频率**:`100Hz`
-- **去抖时间**:`1 tick` (20ms@100Hz)
+- **去抖时间**:`1 tick` (10ms@100Hz)
 - **长按时间**:`50 tick` (500ms@100Hz)
 - **连续按下时间间隔**:`30 tick` (300ms@100Hz)
 #### 创建自定义按键实例

@@ -58,11 +58,11 @@ void tkey_delete(tkey_handle_t key) {
 tkey_handle_t tkey_create_default(tkey_event_cb_t event_cb,
                                   tkey_detect_cb_t detect_cb, void *user_data) {
     tkey_config_t config;
-    config.debounce_ticks = 1;
+    config.debounce_ticks = TKEY_DEFAULT_DEBOUNCE;
     config.detect_cb = detect_cb;
     config.event_cb = event_cb;
-    config.hold_ticks = 50;
-    config.multi_press_interval_ticks = 30;
+    config.hold_ticks = TKEY_DEFAULT_HOLD;
+    config.multi_press_interval_ticks = TKEY_DEFAULT_MULTI_PRESS_INTERVAL;
     config.user_data = user_data;
     return tkey_create(&config);
 }
