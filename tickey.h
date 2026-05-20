@@ -21,7 +21,7 @@ static inline void tkey_unlock(int tkey_lock_state) {
 }
 
 #define TKEY_DEFAULT_DEBOUNCE (1)
-#define TKEY_DEFAULT_HOLD (50)
+#define TKEY_DEFAULT_LONG_PRESS_THRESHOLD (50)
 #define TKEY_DEFAULT_MULTI_PRESS_INTERVAL (30)
 #define TKEY_QUEUE_SIZE (16)
 #if (TKEY_QUEUE_SIZE > 256)
@@ -56,30 +56,30 @@ typedef enum {
 } tkey_event_t;
 
 typedef void (*tkey_event_cb_t)(tkey_t *key, tkey_event_t event,
-                                uint8_t multi_press_count, void *user_data);
+                                uint8_t press_count, void *user_data);
 
-typedef int (*tkey_detect_cb_t)(void *user_data);
+typedef int (*tkey_read_cb_t)(void *user_data);
 
 struct tkey {
     tkey_event_cb_t event_cb;
-    tkey_detect_cb_t detect_cb;
+    tkey_read_cb_t read_cb;
     void *user_data;
-    volatile uint16_t hold_ticks;
     volatile uint16_t debounce_ticks;
+    volatile uint16_t long_press_ticks;
     volatile uint16_t multi_press_interval_ticks;
-    volatile uint16_t pressed_ticks;
+    volatile uint16_t press_ticks;
     volatile uint16_t multi_press_ticks;
-    volatile uint8_t multi_press_count;
+    volatile uint8_t press_count;
     volatile uint8_t press_state;
-    volatile uint8_t flag_long_pressed;
+    volatile uint8_t long_pressed;
 };
 
-int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_detect_cb_t detect_cb,
+int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
               void *user_data);
-int tkey_scan(tkey_t key_arr[], uint32_t num);
-void tkey_dispatch(uint8_t max_event_num);
-int tkey_set_hold(tkey_t *key, uint16_t hold_ticks);
+int tkey_tick(tkey_t key_arr[], uint32_t num);
+void tkey_process(uint8_t max_event_num);
 int tkey_set_debounce(tkey_t *key, uint16_t debounce_ticks);
+int tkey_set_long_press_threshold(tkey_t *key, uint16_t long_press_ticks);
 int tkey_set_multi_press_interval(tkey_t *key,
                                   uint16_t multi_press_interval_ticks);
 
