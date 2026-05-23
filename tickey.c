@@ -49,19 +49,19 @@ int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
     key->event_cb = event_cb;
     key->user_data = user_data;
     key->debounce_ticks = TKEY_DEFAULT_DEBOUNCE;
-    key->long_press_ticks = TKEY_DEFAULT_LONG_PRESS_THRESHOLD;
-    key->multi_press_interval_ticks = TKEY_DEFAULT_MULTI_PRESS_INTERVAL;
+    key->long_press_duration_ticks = TKEY_DEFAULT_LONG_PRESS_THRESHOLD;
+    key->multi_press_timeout_ticks = TKEY_DEFAULT_MULTI_PRESS_INTERVAL;
     key->state = TKEY_STATE_UNPRESSED;
     return 0;
 }
 
-static tkey_event_t tkey_update(tkey_t *key, int read_value,
-                                uint8_t *press_count) {
+static tkey_event_t tkey_scan_key(tkey_t *key, int read_value,
+                                  uint8_t *press_count) {
     tkey_event_t event = TKEY_EVENT_NULL;
     if (key->press_count) {
         if (key->multi_press_ticks < TKEY_MAX_TICKS)
             ++key->multi_press_ticks;
-        if (key->multi_press_ticks >= key->multi_press_interval_ticks) {
+        if (key->multi_press_ticks >= key->multi_press_timeout_ticks) {
             if (key->state == TKEY_STATE_PRESSED)
                 event |= TKEY_EVENT_PRESS_TIMEOUT;
             else
@@ -89,16 +89,16 @@ static tkey_event_t tkey_update(tkey_t *key, int read_value,
             ++key->press_ticks;
         if (!read_value) {
             key->state = TKEY_STATE_UNPRESSED;
-            if (key->long_pressed) {
-                key->long_pressed = 0;
+            if (key->long_press_triggered) {
+                key->long_press_triggered = 0;
                 event |= TKEY_EVENT_LONG_RELEASE;
             } else if (key->press_count > 1)
                 event |= TKEY_EVENT_MULTI_RELEASE;
             else
                 event |= TKEY_EVENT_RELEASE;
             key->press_ticks = 0;
-        } else if (key->press_ticks == key->long_press_ticks) {
-            key->long_pressed = 1;
+        } else if (key->press_ticks == key->long_press_duration_ticks) {
+            key->long_press_triggered = 1;
             event |= TKEY_EVENT_LONG_PRESS;
         }
     }
@@ -109,19 +109,19 @@ static tkey_event_t tkey_update(tkey_t *key, int read_value,
     return event;
 }
 
-int tkey_tick(tkey_t key_arr[], uint32_t num) {
+int tkey_scan(tkey_t keys[], uint32_t key_count) {
     int read_value;
     int tkey_lock_state;
     tkey_message_t message;
     int ret = 0;
-    if (!key_arr)
+    if (!keys)
         return -TKEY_EINVAL;
-    while (num--) {
-        message.key = &key_arr[num];
+    while (key_count--) {
+        message.key = &keys[key_count];
         read_value = message.key->read_cb(message.key->user_data);
         tkey_lock_state = tkey_lock();
         message.event =
-            tkey_update(message.key, read_value, &message.press_count);
+            tkey_scan_key(message.key, read_value, &message.press_count);
         tkey_unlock(tkey_lock_state);
         if (message.event) {
             ret = tkey_queue_send(&tkey_queue, &message);
@@ -130,7 +130,7 @@ int tkey_tick(tkey_t key_arr[], uint32_t num) {
     return ret;
 }
 
-void tkey_process(uint8_t max_event_num) {
+void tkey_dispatch(uint8_t max_event_num) {
     tkey_message_t message;
     while (max_event_num-- && !tkey_queue_receive(&tkey_queue, &message))
         message.key->event_cb(message.key, message.event, message.press_count,
@@ -147,23 +147,24 @@ int tkey_set_debounce(tkey_t *key, uint16_t debounce_ticks) {
     return 0;
 }
 
-int tkey_set_long_press_threshold(tkey_t *key, uint16_t long_press_ticks) {
+int tkey_set_long_press_duration(tkey_t *key,
+                                 uint16_t long_press_duration_ticks) {
     int tkey_lock_state;
     if (!key)
         return -TKEY_EINVAL;
     tkey_lock_state = tkey_lock();
-    key->long_press_ticks = long_press_ticks;
+    key->long_press_duration_ticks = long_press_duration_ticks;
     tkey_unlock(tkey_lock_state);
     return 0;
 }
 
-int tkey_set_multi_press_interval(tkey_t *key,
-                                  uint16_t multi_press_interval_ticks) {
+int tkey_set_multi_press_timeout(tkey_t *key,
+                                 uint16_t multi_press_timeout_ticks) {
     int tkey_lock_state;
     if (!key)
         return -TKEY_EINVAL;
     tkey_lock_state = tkey_lock();
-    key->multi_press_interval_ticks = multi_press_interval_ticks;
+    key->multi_press_timeout_ticks = multi_press_timeout_ticks;
     tkey_unlock(tkey_lock_state);
     return 0;
 }

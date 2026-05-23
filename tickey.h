@@ -70,23 +70,24 @@ struct tkey {
     tkey_read_cb_t read_cb;
     void *user_data;
     volatile uint16_t debounce_ticks;
-    volatile uint16_t long_press_ticks;
-    volatile uint16_t multi_press_interval_ticks;
+    volatile uint16_t long_press_duration_ticks;
+    volatile uint16_t multi_press_timeout_ticks;
     volatile uint16_t press_ticks;
     volatile uint16_t multi_press_ticks;
     volatile uint8_t press_count;
-    volatile uint8_t long_pressed;
+    volatile uint8_t long_press_triggered;
     volatile tkey_state_t state;
 };
 
 int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
               void *user_data);
-int tkey_tick(tkey_t key_arr[], uint32_t num);
-void tkey_process(uint8_t max_event_num);
+int tkey_scan(tkey_t keys[], uint32_t key_count);
+void tkey_dispatch(uint8_t max_event_num);
 int tkey_set_debounce(tkey_t *key, uint16_t debounce_ticks);
-int tkey_set_long_press_threshold(tkey_t *key, uint16_t long_press_ticks);
-int tkey_set_multi_press_interval(tkey_t *key,
-                                  uint16_t multi_press_interval_ticks);
+int tkey_set_long_press_duration(tkey_t *key,
+                                 uint16_t long_press_duration_ticks);
+int tkey_set_multi_press_timeout(tkey_t *key,
+                                 uint16_t multi_press_timeout_ticks);
 
 #ifdef __cplusplus
 }
