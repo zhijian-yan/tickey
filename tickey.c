@@ -4,11 +4,6 @@
 #include "tickey.h"
 #include <string.h>
 
-typedef enum {
-    TKEY_STATE_UNPRESSED = 0,
-    TKEY_STATE_PRESSED,
-} tkey_state_t;
-
 typedef struct {
     tkey_t *key;
     tkey_event_t event;
@@ -16,9 +11,9 @@ typedef struct {
 } tkey_message_t;
 
 typedef struct {
+    tkey_message_t buffer[TKEY_QUEUE_SIZE];
     volatile uint8_t write_index;
     volatile uint8_t read_index;
-    tkey_message_t buffer[TKEY_QUEUE_SIZE];
 } tkey_queue_t;
 
 static tkey_queue_t tkey_queue;
@@ -56,7 +51,7 @@ int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
     key->debounce_ticks = TKEY_DEFAULT_DEBOUNCE;
     key->long_press_ticks = TKEY_DEFAULT_LONG_PRESS_THRESHOLD;
     key->multi_press_interval_ticks = TKEY_DEFAULT_MULTI_PRESS_INTERVAL;
-    key->press_state = TKEY_STATE_UNPRESSED;
+    key->state = TKEY_STATE_UNPRESSED;
     return 0;
 }
 
@@ -67,17 +62,17 @@ static tkey_event_t tkey_update(tkey_t *key, int read_value,
         if (key->multi_press_ticks < TKEY_MAX_TICKS)
             ++key->multi_press_ticks;
         if (key->multi_press_ticks >= key->multi_press_interval_ticks) {
-            if (key->press_state == TKEY_STATE_PRESSED)
+            if (key->state == TKEY_STATE_PRESSED)
                 event |= TKEY_EVENT_PRESS_TIMEOUT;
             else
                 event |= TKEY_EVENT_RELEASE_TIMEOUT;
             key->multi_press_ticks = 0;
         }
     }
-    if (key->press_state == TKEY_STATE_UNPRESSED) {
+    if (key->state == TKEY_STATE_UNPRESSED) {
         if (read_value) {
             if (key->press_ticks >= key->debounce_ticks) {
-                key->press_state = TKEY_STATE_PRESSED;
+                key->state = TKEY_STATE_PRESSED;
                 key->press_ticks = 0;
                 key->multi_press_ticks = 0;
                 if (key->press_count < TKEY_MAX_COUNT)
@@ -89,11 +84,11 @@ static tkey_event_t tkey_update(tkey_t *key, int read_value,
             } else if (key->press_ticks < TKEY_MAX_TICKS)
                 ++key->press_ticks;
         }
-    } else if (key->press_state == TKEY_STATE_PRESSED) {
+    } else if (key->state == TKEY_STATE_PRESSED) {
         if (key->press_ticks < TKEY_MAX_TICKS)
             ++key->press_ticks;
         if (!read_value) {
-            key->press_state = TKEY_STATE_UNPRESSED;
+            key->state = TKEY_STATE_UNPRESSED;
             if (key->long_pressed) {
                 key->long_pressed = 0;
                 event |= TKEY_EVENT_LONG_RELEASE;
@@ -115,10 +110,10 @@ static tkey_event_t tkey_update(tkey_t *key, int read_value,
 }
 
 int tkey_tick(tkey_t key_arr[], uint32_t num) {
-    int tkey_lock_state;
     int read_value;
-    int ret = 0;
+    int tkey_lock_state;
     tkey_message_t message;
+    int ret = 0;
     if (!key_arr)
         return -TKEY_EINVAL;
     while (num--) {
@@ -130,8 +125,6 @@ int tkey_tick(tkey_t key_arr[], uint32_t num) {
         tkey_unlock(tkey_lock_state);
         if (message.event) {
             ret = tkey_queue_send(&tkey_queue, &message);
-            if (ret)
-                continue;
         }
     }
     return ret;

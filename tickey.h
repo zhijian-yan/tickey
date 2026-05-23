@@ -38,6 +38,11 @@ static inline void tkey_unlock(int tkey_lock_state) {
 typedef struct tkey tkey_t;
 
 typedef enum {
+    TKEY_STATE_UNPRESSED = 0,
+    TKEY_STATE_PRESSED,
+} tkey_state_t;
+
+typedef enum {
     TKEY_EVENT_NULL = 0,
     TKEY_EVENT_PRESS = (1 << 0),
     TKEY_EVENT_RELEASE = (1 << 1),
@@ -70,8 +75,8 @@ struct tkey {
     volatile uint16_t press_ticks;
     volatile uint16_t multi_press_ticks;
     volatile uint8_t press_count;
-    volatile uint8_t press_state;
     volatile uint8_t long_pressed;
+    volatile tkey_state_t state;
 };
 
 int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
