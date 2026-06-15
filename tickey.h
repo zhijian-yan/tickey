@@ -43,6 +43,11 @@ typedef enum {
 } tkey_state_t;
 
 typedef enum {
+    TKEY_CB_MODE_DEFERRED,
+    TKEY_CB_MODE_IMMEDIATE,
+} tkey_cb_mode_t;
+
+typedef enum {
     TKEY_EVENT_NULL = 0,
     TKEY_EVENT_PRESS = (1U << 0),
     TKEY_EVENT_RELEASE = (1U << 1),
@@ -69,18 +74,19 @@ struct tkey {
     tkey_event_cb_t event_cb;
     tkey_read_cb_t read_cb;
     void *user_data;
+    tkey_cb_mode_t cb_mode;
     volatile tkey_state_t state;
     volatile uint16_t debounce_ticks;
     volatile uint16_t long_press_duration_ticks;
     volatile uint16_t multi_press_timeout_ticks;
-    volatile uint8_t press_count;
-    uint8_t long_press_triggered;
     uint16_t press_ticks;
     uint16_t multi_press_ticks;
+    uint8_t press_count;
+    uint8_t long_press_triggered;
 };
 
-int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
-              void *user_data);
+int tkey_init(tkey_t *key, tkey_cb_mode_t cb_mode, tkey_event_cb_t event_cb,
+              tkey_read_cb_t read_cb, void *user_data);
 int tkey_scan(tkey_t keys[], uint32_t key_count);
 void tkey_dispatch(uint8_t max_event_num);
 int tkey_set_debounce(tkey_t *key, uint16_t debounce_ticks);

@@ -46,8 +46,8 @@ static int tkey_queue_receive(tkey_queue_t *queue, tkey_message_t *message) {
     return ret;
 }
 
-int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
-              void *user_data) {
+int tkey_init(tkey_t *key, tkey_cb_mode_t cb_mode, tkey_event_cb_t event_cb,
+              tkey_read_cb_t read_cb, void *user_data) {
     int ret = 0;
     if (!key || !event_cb || !read_cb) {
         ret = -TKEY_EINVAL;
@@ -56,6 +56,7 @@ int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
         key->read_cb = read_cb;
         key->event_cb = event_cb;
         key->user_data = user_data;
+        key->cb_mode = cb_mode;
         key->debounce_ticks = TKEY_DEFAULT_DEBOUNCE;
         key->long_press_duration_ticks = TKEY_DEFAULT_LONG_PRESS_THRESHOLD;
         key->multi_press_timeout_ticks = TKEY_DEFAULT_MULTI_PRESS_INTERVAL;
@@ -141,7 +142,13 @@ int tkey_scan(tkey_t keys[], uint32_t key_count) {
                 tkey_scan_key(message.key, read_value, &message.press_count);
             tkey_unlock(tkey_lock_state);
             if (message.event) {
-                ret |= tkey_queue_send(&tkey_queue, &message);
+                if (message.key->cb_mode == TKEY_CB_MODE_IMMEDIATE) {
+                    message.key->event_cb(message.key, message.event,
+                                          message.press_count,
+                                          message.key->user_data);
+                } else {
+                    ret |= tkey_queue_send(&tkey_queue, &message);
+                }
             }
         }
     }
