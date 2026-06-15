@@ -44,14 +44,14 @@ typedef enum {
 
 typedef enum {
     TKEY_EVENT_NULL = 0,
-    TKEY_EVENT_PRESS = (1 << 0),
-    TKEY_EVENT_RELEASE = (1 << 1),
-    TKEY_EVENT_LONG_PRESS = (1 << 2),
-    TKEY_EVENT_LONG_RELEASE = (1 << 3),
-    TKEY_EVENT_MULTI_PRESS = (1 << 4),
-    TKEY_EVENT_MULTI_RELEASE = (1 << 5),
-    TKEY_EVENT_PRESS_TIMEOUT = (1 << 6),
-    TKEY_EVENT_RELEASE_TIMEOUT = (1 << 7),
+    TKEY_EVENT_PRESS = (1U << 0),
+    TKEY_EVENT_RELEASE = (1U << 1),
+    TKEY_EVENT_LONG_PRESS = (1U << 2),
+    TKEY_EVENT_LONG_RELEASE = (1U << 3),
+    TKEY_EVENT_MULTI_PRESS = (1U << 4),
+    TKEY_EVENT_MULTI_RELEASE = (1U << 5),
+    TKEY_EVENT_PRESS_TIMEOUT = (1U << 6),
+    TKEY_EVENT_RELEASE_TIMEOUT = (1U << 7),
     TKEY_EVENT_ALL_PRESS =
         (TKEY_EVENT_PRESS | TKEY_EVENT_LONG_PRESS | TKEY_EVENT_MULTI_PRESS),
     TKEY_EVENT_ALL_RELEASE = (TKEY_EVENT_RELEASE | TKEY_EVENT_LONG_RELEASE |
@@ -69,14 +69,14 @@ struct tkey {
     tkey_event_cb_t event_cb;
     tkey_read_cb_t read_cb;
     void *user_data;
+    volatile tkey_state_t state;
     volatile uint16_t debounce_ticks;
     volatile uint16_t long_press_duration_ticks;
     volatile uint16_t multi_press_timeout_ticks;
-    volatile uint16_t press_ticks;
-    volatile uint16_t multi_press_ticks;
     volatile uint8_t press_count;
-    volatile uint8_t long_press_triggered;
-    volatile tkey_state_t state;
+    uint8_t long_press_triggered;
+    uint16_t press_ticks;
+    uint16_t multi_press_ticks;
 };
 
 int tkey_init(tkey_t *key, tkey_event_cb_t event_cb, tkey_read_cb_t read_cb,
