@@ -141,7 +141,7 @@ int tkey_scan(tkey_t keys[], uint32_t key_count) {
                 tkey_scan_key(message.key, read_value, &message.press_count);
             tkey_unlock(tkey_lock_state);
             if (message.event) {
-                ret = tkey_queue_send(&tkey_queue, &message);
+                ret |= tkey_queue_send(&tkey_queue, &message);
             }
         }
     }
