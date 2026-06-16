@@ -32,23 +32,21 @@ Add the following files to your project:
 * `tickey.c`
 * `tickey.h`
 
----
+## Quick Start
 
-# Quick Start
-
-## 1. Create a Key Object
+### 1. Create a Key Object
 
 ```c
 tkey_t key;
 ```
 
-## 2. Initialize the Key
+### 2. Initialize the Key
 
 ```c
 tkey_init(&key, TKEY_CB_MODE_DEFERRED, key_event_cb, key_read, NULL);
 ```
 
-## 3. Implement the Read Callback
+### 3. Implement the Read Callback
 
 ```c
 int tkey_read_callback(void *user_data) {
@@ -59,7 +57,7 @@ int tkey_read_callback(void *user_data) {
 }
 ```
 
-## 4. Implement the Event Callback
+### 4. Implement the Event Callback
 
 ```c
 void tkey_event_callback(tkey_t *key, tkey_event_t event, uint8_t press_count,
@@ -71,7 +69,7 @@ void tkey_event_callback(tkey_t *key, tkey_event_t event, uint8_t press_count,
 }
 ```
 
-## 5. Scan Keys Periodically
+### 5. Scan Keys Periodically
 
 ```c
 void timer_callback(void) {
@@ -79,7 +77,7 @@ void timer_callback(void) {
 }
 ```
 
-## 6. Dispatch Events
+### 6. Dispatch Events
 
 ```c
 while (1) {
@@ -87,7 +85,7 @@ while (1) {
 }
 ```
 
-## Complete Example
+### Complete Example
 
 ```c
 #include "tickey.h"
@@ -131,9 +129,7 @@ int main(void) {
 }
 ```
 
----
-
-# Design
+## Design
 
 tickey uses a polling-based key scanning mechanism.
 
@@ -162,7 +158,7 @@ The state machine is then updated and corresponding events are generated.
 
 ---
 
-## State Machine
+### State Machine
 
 tickey uses a lightweight finite state machine (FSM).
 
@@ -200,7 +196,7 @@ tickey uses a lightweight finite state machine (FSM).
        +-------------+
 ```
 
-### States
+#### States
 
 | State      | Description                         |
 | ---------- | ----------------------------------- |
@@ -208,7 +204,7 @@ tickey uses a lightweight finite state machine (FSM).
 | PRESSED    | Key is currently pressed            |
 | LONG_PRESS | Long-press event has been triggered |
 
-### Events
+#### Events
 
 | Event                    | Description                  |
 | ------------------------ | ---------------------------- |
@@ -221,7 +217,7 @@ tickey uses a lightweight finite state machine (FSM).
 
 ---
 
-## Timeout Events
+### Timeout Events
 
 tickey maintains two independent counters:
 
@@ -278,11 +274,11 @@ if (event & TKEY_EVENT_RELEASE_TIMEOUT) {
 
 ---
 
-## Callback Execution Model
+### Callback Execution Model
 
 tickey supports two callback modes.
 
-### Immediate Mode
+#### Immediate Mode
 
 ```c
 TKEY_CB_MODE_IMMEDIATE
@@ -303,9 +299,7 @@ Advantages:
 * Lowest latency
 * No event queue required
 
----
-
-### Deferred Mode
+#### Deferred Mode
 
 ```c
 TKEY_CB_MODE_DEFERRED
@@ -341,17 +335,17 @@ Advantages:
 
 ---
 
-## Concurrency Model
+### Concurrency Model
 
 tickey uses an SPSC (Single Producer Single Consumer) model.
 
-### Producer
+**Producer**
 
 ```c
 tkey_scan()
 ```
 
-### Consumer
+**Consumer**
 
 ```c
 tkey_dispatch()
@@ -388,11 +382,9 @@ The following APIs must follow the single-producer/single-consumer model:
 
 Only one execution context may call each function at a time.
 
----
+## API Reference
 
-# API Reference
-
-## tkey_init
+### tkey_init
 
 ```c
 int tkey_init(tkey_t *key,
@@ -404,7 +396,7 @@ int tkey_init(tkey_t *key,
 
 Initialize a key object.
 
-### Parameters
+**Parameters**
 
 * `key` - Key object
 * `cb_mode` - Callback mode
@@ -412,14 +404,14 @@ Initialize a key object.
 * `read_cb` - Read callback
 * `user_data` - User-defined data
 
-### Return Value
+**Return Value**
 
 * `0` - Success
 * `-TKEY_EINVAL` - Invalid parameter
 
 ---
 
-## tkey_scan
+### tkey_scan
 
 ```c
 int tkey_scan(tkey_t keys[], uint32_t key_count);
@@ -427,12 +419,12 @@ int tkey_scan(tkey_t keys[], uint32_t key_count);
 
 Scan key states.
 
-### Parameters
+**Parameters**
 
 * `keys` - Key object array
 * `key_count` - Number of keys
 
-### Return Value
+**Return Value**
 
 * `0` - Success
 * `-TKEY_EINVAL` - Invalid parameter
@@ -440,7 +432,7 @@ Scan key states.
 
 ---
 
-## tkey_dispatch
+### tkey_dispatch
 
 ```c
 void tkey_dispatch(uint8_t max_event_num);
@@ -450,13 +442,13 @@ Process queued events and execute callbacks.
 
 Only valid in deferred mode.
 
-### Parameters
+**Parameters**
 
 * `max_event_num` - Maximum events processed per call
 
 ---
 
-## tkey_set_debounce
+### tkey_set_debounce
 
 ```c
 int tkey_set_debounce(tkey_t *key,
@@ -467,7 +459,7 @@ Set debounce duration.
 
 ---
 
-## tkey_set_long_press_duration
+### tkey_set_long_press_duration
 
 ```c
 int tkey_set_long_press_duration(
@@ -479,7 +471,7 @@ Set long-press duration.
 
 ---
 
-## tkey_set_multi_press_timeout
+### tkey_set_multi_press_timeout
 
 ```c
 int tkey_set_multi_press_timeout(
@@ -489,23 +481,21 @@ int tkey_set_multi_press_timeout(
 
 Set multi-press timeout interval.
 
----
+## Macros
 
-# Macros
-
-## TKEY_DEFAULT_DEBOUNCE
+### TKEY_DEFAULT_DEBOUNCE
 
 Default debounce duration.
 
-## TKEY_DEFAULT_LONG_PRESS_DURATION
+### TKEY_DEFAULT_LONG_PRESS_DURATION
 
 Default long-press duration.
 
-## TKEY_DEFAULT_MULTI_PRESS_TIMEOUT
+### TKEY_DEFAULT_MULTI_PRESS_TIMEOUT
 
 Default multi-press timeout.
 
-## TKEY_QUEUE_SIZE
+### TKEY_QUEUE_SIZE
 
 Event queue length.
 
@@ -516,18 +506,18 @@ Requirements:
 
 Default: `16`
 
-## TKEY_MAX_TICKS
+### TKEY_MAX_TICKS
 
 Maximum tick counter value.
 
-## TKEY_MAX_COUNT
+### TKEY_MAX_COUNT
 
 Maximum press count.
 
-## TKEY_EINVAL
+### TKEY_EINVAL
 
 Invalid parameter error code.
 
-## TKEY_EAGAIN
+### TKEY_EAGAIN
 
 Queue full error code.

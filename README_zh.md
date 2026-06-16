@@ -29,8 +29,8 @@ git submodule add https://github.com/xxx/tickey.git
 
 将以下文件加入工程：
 
-* tickey.c
-* tickey.h
+* `tickey.c`
+* `tickey.h`
 
 ## 快速开始
 
